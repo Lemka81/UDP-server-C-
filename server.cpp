@@ -55,7 +55,7 @@ inline void ShutdownSockets()
 
 // make UDP socket
 
-bool MakeUDPSocket()
+bool MakeUDPSocket(int port)
 {
 	int handle = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 
@@ -64,12 +64,6 @@ bool MakeUDPSocket()
 		printf("failed to create socket\n");
 		return false;
 	}
-}
-
-	// binding
-
-bool MakeBind()
-{
 	sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
@@ -80,12 +74,14 @@ bool MakeBind()
 		printf("failed to bind socket\n");
 		return false;
 	}
+	return true;
 }
 
 int main()
 {
-	MakeUDPSocket();
-	MakeBind();
+	bool res;
+	res = MakeUDPSocket(30000);
+	if (!res)
+		printf("OK");
 	return (0);
-
 }
