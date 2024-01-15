@@ -55,11 +55,11 @@ inline void ShutdownSockets()
 
 // make UDP socket
 
-bool MakeUDPSocket(int port)
+bool server(int port, const char *packet_data, int packet_size)
 {
 	int handle = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 
-	if ( handle <= 0 ) 
+	if (handle <= 0) 
 	{
 		printf("failed to create socket\n");
 		return false;
@@ -75,13 +75,44 @@ bool MakeUDPSocket(int port)
 		return false;
 	}
 	return true;
+
+	// switching the socket to non-blocking mode
+
+	#if PLATFORM == PLATFORM_MAC || PLATFORM == PLATFORM_UNIX
+
+		int nonBlocking = 1;
+		if (fcntl(handle, F_SETFL, O_NONBLOCK, nonBlocking) == -1 )
+		{
+			printf("failed to set non-blocking socket\n");
+			return false;
+		}
+
+	#elif PLATFORM == PLATFORM_WINDOWS
+
+		DWORD nonBlocking = 1;
+		if (ioctlsocket( handle, FIONBIO, &nonBlocking) != 0 )
+		{
+			printf("failed to set non-blocking socket\n");
+			return false;
+		}
+
+	#endif
+
+	// sending packages
+
+	int sent_bytes = sendto(handle, (const char*)packet_data, packet_size, 0,\
+							(sockaddr*)&address, sizeof(sockaddr_in));
+	
+	if (sent_bytes != packet_size)
+	{
+		printf("failed to send packet: return value = %d\n", sent_bytes);
+		return false;
+	}
 }
 
 int main()
 {
-	bool res;
-	res = MakeUDPSocket(30000);
-	if (!res)
-		printf("OK");
+	server(30000, "Hello LOLO", 11);
+
 	return (0);
 }
